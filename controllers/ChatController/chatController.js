@@ -1,10 +1,7 @@
 const Chat = require("../../models/ChatModel/chatModel");
-const Order = require("../../models/OrderModel/orderModel");
 const User = require("../../models/UserModel/userModel");
 const catchAsync = require('./../../utils/catchAsync');
 const AppError = require('./../../utils/appError');
-const { callbackPromise } = require("nodemailer/lib/shared");
-
 
 function getuser(a, userid){
   // console.log(a, userid, 'jdnfjfdn')
@@ -75,7 +72,6 @@ exports.accessChat = catchAsync(async (req, res, next) => {
     }
   });
 
-
 exports.fetchChats = catchAsync(async (req, res, next) => {
   
       Chat.find({ users: { $elemMatch: { $eq: req.user._id } } })
@@ -98,15 +94,15 @@ exports.fetchChats = catchAsync(async (req, res, next) => {
 
 exports.createGroupChat = catchAsync(async (req, res) => {
   if (!req.body.users || !req.body.name) {
-    return res.status(400).send({ message: "Please Fill all the feilds" });
+    return res.status(400).json({ message: "Please Fill all the feilds" });
   }
 
-  var users = JSON.parse(req.body.users);
+  var users = req.body.users
 
   if (users.length < 2) {
     return res
       .status(400)
-      .send("More than 2 users are required to form a group chat");
+      .json("More than 2 users are required to form a group chat");
   }
 
   users.push(req.user);
@@ -116,18 +112,16 @@ exports.createGroupChat = catchAsync(async (req, res) => {
       chatName: req.body.name,
       users: users,
       isGroupChat: true,
-      groupAdmin: req.user,
+      groupAdmin: req.user._id,
     });
 
     const fullGroupChat = await Chat.findOne({ _id: groupChat._id })
-      .populate("users", "-password")
-      .populate("groupAdmin", "-password");
+      .populate("users")
+      .populate("groupAdmin");
 
     res.status(200).json(fullGroupChat);
   
 });
-
-
 
 exports.renameGroup = catchAsync(async (req, res) => {
   const { chatId, chatName } = req.body;
@@ -141,19 +135,16 @@ exports.renameGroup = catchAsync(async (req, res) => {
       new: true,
     }
   )
-    .populate("users", "-password")
-    .populate("groupAdmin", "-password");
+    .populate("users", )
+    .populate("groupAdmin");
 
   if (!updatedChat) {
     res.status(404);
-    throw new Error("Chat Not Found");
+    throw new AppError("Chat Not Found", 404);
   } else {
-    res.json(updatedChat);
+    res.status(200).json(updatedChat);
   }
 });
-
-
-
 
 exports.removeFromGroup = catchAsync(async (req, res) => {
   const { chatId, userId } = req.body;
@@ -174,13 +165,11 @@ exports.removeFromGroup = catchAsync(async (req, res) => {
 
   if (!removed) {
     res.status(404);
-    throw new Error("Chat Not Found");
+    throw new AppError("Chat Not Found", 400);
   } else {
-    res.json(removed);
+    res.status(200).json(removed);
   }
 });
-
-
 
 exports.addToGroup = catchAsync(async (req, res) => {
   const { chatId, userId } = req.body;
@@ -190,20 +179,20 @@ exports.addToGroup = catchAsync(async (req, res) => {
   const added = await Chat.findByIdAndUpdate(
     chatId,
     {
-      $push: { users: userId },
+      $addToSet: { users: userId },
     },
     {
       new: true,
     }
   )
-    .populate("users", "-password")
-    .populate("groupAdmin", "-password");
+    .populate("users")
+    .populate("groupAdmin");
 
   if (!added) {
     res.status(404);
-    throw new Error("Chat Not Found");
+    throw new AppError("Chat Not Found");
   } else {
-    res.json(added);
+    res.status(200).json(added);
   }
 });
 
@@ -224,82 +213,3 @@ exports.addToGroup = catchAsync(async (req, res) => {
 
 
 
-
-
-
-
-
-
-// chat under order
-
-
-exports.chatunderorder = catchAsync(async (req, res, next)=>{
-  const { userId, orderId } = req.body;
-  // console.log(req.user)
-  if (!orderId) {
-    console.log("orderId param not sent with request");
-    return res.sendStatus(400);
-  }
-
-  var isChat = await Chat.find({ _id: orderId})
-    .populate("users", "-password")
-    .populate("latestMessage")
-    .populate("orderId");
-
-  isChat = await User.populate(isChat, {
-    path: "latestMessage.sender",
-    select: "name pic email",
-  });
-
-  
-  if (isChat.length > 0) {
-
-    let temp = getuser(isChat[0], req.user._id)
-
-    let chats = isChat[0];
-
-    chats.users = temp
-
-    res.status(200).json({
-      message: 'success',
-      chat: chats
-    });
-  } else {
-    var chatData = {
-      users: [req.user._id, userId],
-    };
-
-
-    const createdChat = await Chat.create({
-      _id: orderId,
-      orderId: orderId,
-      ...chatData
-    })
-    const FullChat = await Chat.findOne({ _id: createdChat._id }).populate(
-      "users",
-      "-password"
-    ).populate("orderId");
-    res.status(200).json({
-      message: 'success',
-      chat: FullChat
-    });
-  }
-})
-
-
-exports.fetchChatsunderorder = catchAsync(async (req, res, next) => {
-
-  Chat.findById(req.params.orderId)
-    .populate("users", "-password")
-    .populate("groupAdmin", "-password")
-    .populate("latestMessage")
-    .sort({ updatedAt: -1 })
-    .then(async (results) => {
-      results = await User.populate(results, {
-        path: "latestMessage.sender",
-        select: "name pic email",
-      });
-      res.status(200).send(results);
-    });
-
-});
