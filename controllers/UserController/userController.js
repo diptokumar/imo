@@ -127,3 +127,47 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
 //     const users = await User.find(keyword).find({ _id: { $ne: req.user._id } });
 //     res.send(users);
 //   });
+
+
+
+
+exports.findUsers = async (req, res, next) => {
+    try {
+        let { phoneNumber } = req.body
+        let user = await DB.User.find(
+            { phoneNumber: { $in: phoneNumber } }
+        );
+        let users = [];
+
+        for (let i = 0; i < phoneNumber.length; i++) {
+            let temp = 0;
+            console.log("Hello")
+            for (let j = 0; j < user.length; j++) {
+
+                if (phoneNumber[i] === user[j].phoneNumber) {
+                    users.push({
+                        hasAccount: true,
+                        phone: user[j]?.phoneNumber,
+                        avatar: user[j]?.avatar,
+                        handleId: user[j]?.userHandle
+                    });
+                    temp = 1;
+                    break;
+                }
+            }
+            if (temp === 0) {
+                users.push({
+                    hasAccount: false,
+                    phone: req.body.phoneNumber[i],
+                });
+            }
+        }
+
+        res.locals.User = { users };
+
+        return next();
+
+    } catch (e) {
+        return next(e);
+    }
+}

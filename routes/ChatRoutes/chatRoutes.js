@@ -8,6 +8,10 @@ const { uploadS3 } = require('../../middleware/multer');
 
 
 
+
+
+
+
 router.route("/add-to-group").post(authController.protect, chatController.addToGroup);
 
 router.route("/remove-from-group").post(authController.protect, chatController.removeFromGroup);
@@ -18,6 +22,9 @@ router.route("/rename-group-chat").post(authController.protect, chatController.r
 router.route("/create-group-chat").post(authController.protect, chatController.createGroupChat);
 
 router.route("/send-message").post(authController.protect, messageController.sendMessage);
+
+router.route("/get-message/:chatId").get(authController.protect, messageController.allMessages);
+
 
 router.route("/all-chats").get(authController.protect, chatController.fetchChats);
 
