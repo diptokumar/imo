@@ -12,7 +12,7 @@ exports.allMessages = catchAsync(async (req, res) => {
 
   const messages = await Message.find({ chat: req.params.chatId })
     .populate("sender", "name pic email")
-    .populate("chat").sort({createdAt: -1});
+    .populate("chat");
   res.status(200).json({
     status: "success",
     messages
