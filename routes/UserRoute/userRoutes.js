@@ -21,6 +21,13 @@ router.patch(
 
 router.use(authController.protect );
 
+
+router
+  .route('/findByAllNumber')
+  .post(userController.findUsers)
+
+
+
 router
     .route('/')
     .get( userController.getAllUsers)

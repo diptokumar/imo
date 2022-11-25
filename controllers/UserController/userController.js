@@ -111,37 +111,17 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
 })
 
 
-//@description     Get or Search all users
-//@route           GET /api/user?search=
-//@access          Public
-// exports.allUsers = asyncHandler(async (req, res) => {
-//     const keyword = req.query.search
-//       ? {
-//           $or: [
-//             { name: { $regex: req.query.search, $options: "i" } },
-//             { email: { $regex: req.query.search, $options: "i" } },
-//           ],
-//         }
-//       : {};
-  
-//     const users = await User.find(keyword).find({ _id: { $ne: req.user._id } });
-//     res.send(users);
-//   });
-
-
-
 
 exports.findUsers = async (req, res, next) => {
     try {
         let { phoneNumber } = req.body
-        let user = await DB.User.find(
+        let user = await User.find(
             { phoneNumber: { $in: phoneNumber } }
         );
         let users = [];
 
         for (let i = 0; i < phoneNumber.length; i++) {
             let temp = 0;
-            console.log("Hello")
             for (let j = 0; j < user.length; j++) {
 
                 if (phoneNumber[i] === user[j].phoneNumber) {
@@ -163,11 +143,14 @@ exports.findUsers = async (req, res, next) => {
             }
         }
 
-        res.locals.User = { users };
-
-        return next();
+        res.status(200).json({
+            status: 'success',
+            data: users
+        });
 
     } catch (e) {
         return next(e);
     }
 }
+
+
