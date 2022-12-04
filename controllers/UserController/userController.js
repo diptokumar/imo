@@ -127,20 +127,27 @@ exports.findUsers = async (req, res, next) => {
                 if (phoneNumber[i] === user[j].phoneNumber) {
                     users.push({
                         hasAccount: true,
-                        phone: user[j]?.phoneNumber,
-                        avatar: user[j]?.avatar,
-                        handleId: user[j]?.userHandle
+                        // phone: user[j]?.phoneNumber,
+                        // avatar: user[j]?.avatar,
+                        // handleId: user[j]?.userHandle,
+
+                        "role": user[j]?.role,
+                        "image": user[j]?.image,
+                        "online": user[j]?.online,
+                        "_id": user[j]?._id,
+                        "phoneNumber":user[j]?.phoneNumber,
+                        "name": user[j]?.name
                     });
                     temp = 1;
                     break;
                 }
             }
-            if (temp === 0) {
-                users.push({
-                    hasAccount: false,
-                    phone: req.body.phoneNumber[i],
-                });
-            }
+            // if (temp === 0) {
+            //     users.push({
+            //         hasAccount: false,
+            //         phone: req.body.phoneNumber[i],
+            //     });
+            // }
         }
 
         res.status(200).json({
