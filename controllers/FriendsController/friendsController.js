@@ -8,31 +8,41 @@ const mongoose = require('mongoose');
 
 
 exports.createFriendRequest= catchAsync(async (req,res, next)=> {
-    let friendRequest
-    let object = {
-        userOne: req.user._id,
-        userTwo: req.body.friend,
-        request: 'pending'
+    let friendRequest;
+
+    let arr = []
+
+    for (let i = 0; i < req.body.friends.length; i++){
+        let object = {
+            userOne: req.user._id,
+            userTwo: req.body.friends[i],
+            request: 'pending'
+        }
+        let check = await Friendslog.findOne(object);
+        let friendcheck = await Friends.findOne({
+            mainUserID: req.user._id,
+            freindId: req.body.friend
+        })
+        if (check === null && friendcheck === null) {
+            arr.push(object)
+            
+        } 
     }
-    let check = await Friendslog.findOne(object);
-    let friendcheck = await Friends.findOne({
-        mainUserID: req.user._id,
-        freindId: req.body.friend
-    })
-    console.log(check)
-    console.log(friendcheck)
-    if(check === null && friendcheck === null){
-        friendRequest = await Friendslog.create(object)
+    
+    if(arr.length > 0){
+        friendRequest = await Friendslog.create(arr)
         res.status(200).json({
             status: 'success',
             friendRequest
         })
-    }else{
+
+    }else {
         res.status(200).json({
             status: 'success',
-            message: 'You already requested'
+            message: 'already requested'
         })
     }
+    
     
 
 })
