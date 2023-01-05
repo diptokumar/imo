@@ -15,7 +15,7 @@ const signToken = id => {
 
 const createSendToken = (user, statusCode, res) => {
   const token = signToken(user._id);
-  console.log(token)
+  // console.log(token)
   res.status(statusCode).json({
     status: 'success',
     token,
@@ -25,32 +25,16 @@ const createSendToken = (user, statusCode, res) => {
 
 exports.signup = catchAsync(async (req, res, next) => {
   let newUser;
-  // const fileStr = req.files.image;
-  // let result = await cloudinary.uploader.upload(fileStr.tempFilePath, {
-	// 	public_id: `${Date.now()}`,
-	// 	resource_type: "auto", //jpeg,png
-	// });
-  //   if(req.files.image === undefined){
-  //     newUser = await User.create({
-  //       phoneNumber: req.body.phoneNumber,
-  //     });
-  //   }else{
-  //     newUser = await User.create({
-  //       phoneNumber: req.body.phoneNumber,
   
-  //     });
-        
-  //   }
-  
-  newUser = await User.create({
+  newUser = await User.findOne({
     phoneNumber: req.body.phoneNumber,
-
   });
-  // res.status(201).json({
-  //   status: 'Success',
-  //   newUser
-  // })
 
+  if(!newUser){
+    newUser = await User.create({
+      phoneNumber: req.body.phoneNumber,
+    });
+  }
 
   createSendToken(newUser, 201, res);
 });
