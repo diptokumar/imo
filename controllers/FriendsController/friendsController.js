@@ -1,5 +1,6 @@
 const Friendslog = require('./../../models/FrendsModel/friendLogModel');
 const Friends = require('./../../models/FrendsModel/friendsModel');
+const Chat = require('./../../models/ChatModel/chatModel');
 
 const catchAsync = require('./../../utils/catchAsync');
 const AppError = require('./../../utils/appError');
@@ -81,6 +82,12 @@ exports.acceptFriendRequest= catchAsync(async (req,res, next)=> {
         let requestupdate = await Friendslog.findByIdAndUpdate(requestId,{
             request: 'accept'
         });
+
+        let chat = await Chat.create({
+            users: [request.userOne, request.userTwo],
+          })
+
+        console.log(chat)
         res.status(200).json({
             status: 'success',
             friend,
