@@ -73,8 +73,11 @@ exports.accessChat = catchAsync(async (req, res, next) => {
   });
 
 exports.fetchChats = catchAsync(async (req, res, next) => {
-  
-      Chat.find({ users: { $elemMatch: { $eq: req.user._id } } })
+  const { isGroupChat} = req.query;
+
+
+
+  Chat.find({ users: { $elemMatch: { $eq: req.user._id } }, isGroupChat: isGroupChat })
         .populate("users", "-password")
         .populate("groupAdmin", "-password")
         .populate("latestMessage")
