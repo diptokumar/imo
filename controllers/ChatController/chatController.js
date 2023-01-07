@@ -73,9 +73,11 @@ exports.accessChat = catchAsync(async (req, res, next) => {
   });
 
 exports.fetchChats = catchAsync(async (req, res, next) => {
-  const { isGroupChat} = req.query;
+  let { isGroupChat} = req.query;
 
-
+  if (!isGroupChat){
+    isGroupChat = false;
+  }
 
   Chat.find({ users: { $elemMatch: { $eq: req.user._id } }, isGroupChat: isGroupChat })
         .populate("users", "-password")
